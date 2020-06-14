@@ -1,15 +1,11 @@
 import argparse
 import logging
-import sys
-import time
 
 import numpy as np
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
-import torchvision
 from torchvision import datasets, transforms
-from torch.utils.data import DataLoader, Dataset
+from torch.utils.data import DataLoader
 
 from mnist_net import mnist_net
 

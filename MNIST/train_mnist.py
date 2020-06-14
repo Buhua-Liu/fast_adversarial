@@ -6,11 +6,11 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import torchvision
 from torchvision import datasets, transforms
-from torch.utils.data import DataLoader, Dataset
+from torch.utils.data import DataLoader
 
 from mnist_net import mnist_net
+from lbcnn import Lbcnn
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(
@@ -32,6 +32,7 @@ def get_args():
     parser.add_argument('--lr-type', default='cyclic')
     parser.add_argument('--fname', default='mnist_model', type=str)
     parser.add_argument('--seed', default=0, type=int)
+    parser.add_argument('--model', default='mnist_net', type=str, choices=['mnist_net', 'lbcnn'])
     return parser.parse_args()
 
 
@@ -46,7 +47,10 @@ def main():
     mnist_train = datasets.MNIST("../mnist-data", train=True, download=True, transform=transforms.ToTensor())
     train_loader = torch.utils.data.DataLoader(mnist_train, batch_size=args.batch_size, shuffle=True)
 
-    model = mnist_net().cuda()
+    if args.model == 'mnist_net':
+        model = mnist_net().cuda()
+    elif args.model == 'lbcnn':
+        model = Lbcnn().cuda()
     model.train()
 
     opt = torch.optim.Adam(model.parameters(), lr=args.lr_max)
@@ -83,7 +87,7 @@ def main():
             elif args.attack == 'none':
                 delta = torch.zeros_like(X)
             elif args.attack == 'pgd':
-                delta = torch.zeros_like(X).uniform_(-args.epsilon, args.epsilon)
+                delta = torch.zeros_like(X).uniform_(-args.epsilon, args.epsilon).cuda()
                 delta.data = torch.max(torch.min(1-X, delta.data), 0-X)
                 for _ in range(args.attack_iters):
                     delta.requires_grad = True
